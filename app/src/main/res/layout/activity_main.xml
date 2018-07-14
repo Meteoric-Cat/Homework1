@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.widget.RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".MainActivity">
+
+    <!--Nexus 5x screen-->
+
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/rv_info"
+        android:layout_width="match_parent"
+        android:layout_height="500dp"
+        android:scrollbars="vertical"></android.support.v7.widget.RecyclerView>
+
+    <Button
+        android:id="@+id/btn_linear"
+        style="@style/MainActivity_Button"
+        android:layout_below="@id/rv_info"
+        android:layout_marginTop="20dp"
+        android:layout_alignParentLeft="true"
+        android:layout_marginLeft="20dp"
+        android:text="@string/btn_linear"/>
+
+    <Button
+        android:id="@+id/btn_grid"
+        style="@style/MainActivity_Button"
+        android:layout_alignTop="@id/btn_linear"
+        android:layout_centerHorizontal="true"
+        android:text="@string/btn_grid"/>
+
+    <Button
+        android:id="@+id/btn_add"
+        style="@style/MainActivity_Button"
+        android:layout_alignParentRight="true"
+        android:layout_marginRight="20dp"
+        android:layout_alignTop="@id/btn_linear"
+        android:text="@string/btn_add"/>
+
+</android.widget.RelativeLayout>

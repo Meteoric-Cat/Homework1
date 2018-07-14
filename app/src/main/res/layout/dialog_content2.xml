@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content">
+
+    <EditText
+        android:id="@+id/et_otherName"
+        style="@style/DialogContent_EditText"
+        android:layout_marginTop="10dp"
+        android:layout_marginLeft="10dp"
+        android:inputType="text" />
+
+    <EditText
+        android:id="@+id/et_otherContactInfo"
+        style="@style/DialogContent_EditText"
+        android:layout_alignLeft="@id/et_otherName"
+        android:layout_below="@id/et_otherName"
+        android:layout_marginTop="5dp"
+        android:inputType="number" />
+
+</RelativeLayout>

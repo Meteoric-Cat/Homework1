@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<resources>
+    <string name="app_name">Homework4</string>
+
+    <!--MainActivity-->
+    <string name="btn_add">Add</string>
+    <string name="btn_linear">Linear</string>
+    <string name="btn_grid">Grid</string>
+    <string name="dg_input1tag">InputDialog1</string>
+    <string name="dg_input2tag">InputDialog2</string>
+
+    <!--DialogContent-->
+    <string name="et_nameHint">Name</string>
+    <string name="et_contactNumberHint">Contact Number</string>
+    <string name="btn_save">Save</string>
+    <string name="btn_close">Close</string>
+    <string name="btn_delete">Delete</string>
+    <string name="dg_title">Input Dialog</string>
+</resources>
