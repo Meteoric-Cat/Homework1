@@ -50,7 +50,12 @@ public class InputDialog2 extends DialogFragment {
                             String name = ((EditText) getDialog().findViewById(R.id.et_otherName)).getText().toString().trim();
                             String contactInfo = ((EditText) getDialog().findViewById(R.id.et_otherContactInfo)).getText().toString().trim();
 
-                            clickHandler.handleSave2(name, contactInfo);
+                            if (name.equals("") || contactInfo.equals("")) {
+                                String error="Invalid Input";
+                                Toast.makeText(getActivity().getApplicationContext(), error, Toast.LENGTH_SHORT).show();
+                            } else {
+                                clickHandler.handleSave2(name, contactInfo);
+                            }
                         }
                     }
                 })

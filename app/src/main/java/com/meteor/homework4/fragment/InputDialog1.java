@@ -44,7 +44,12 @@ public class InputDialog1 extends DialogFragment {
                             String name = ((EditText) getDialog().findViewById(R.id.et_name)).getText().toString().trim();
                             String contactInfo = ((EditText) getDialog().findViewById(R.id.et_contactInfo)).getText().toString().trim();
 
-                            clickHandler.handleSave1(name, contactInfo);
+                            if (name.equals("") || contactInfo.equals(""))  {
+                                String error="Invalid Input";
+                                Toast.makeText(getActivity().getApplicationContext(), error, Toast.LENGTH_SHORT).show();
+                            } else {
+                                clickHandler.handleSave1(name, contactInfo);
+                            }
                         }
                     }
                 })

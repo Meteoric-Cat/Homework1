@@ -94,10 +94,6 @@ public class MainActivity extends AppCompatActivity implements InputDialog1.Clic
 
                     String viewContent = ((TextView) child).getText().toString();
                     String[] info=viewContent.split("\n");
-                    String temp="";
-
-                    info[0]=(info[0] != null)?info[0]:temp;
-                    info[1]=(info[1] != null)?info[1]:temp;
 
                     DataHolder.getInstance().setName(info[0]);
                     DataHolder.getInstance().setContactInfo(info[1]);
