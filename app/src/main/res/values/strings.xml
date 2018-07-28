@@ -6,6 +6,8 @@
     <string name="btn_add">Add</string>
     <string name="btn_linear">Linear</string>
     <string name="btn_grid">Grid</string>
+    <string name="btn_mainDelete">Delete</string>
+    <string name="btn_mainCancel">Cancel</string>
     <string name="dg_input1tag">InputDialog1</string>
     <string name="dg_input2tag">InputDialog2</string>
 

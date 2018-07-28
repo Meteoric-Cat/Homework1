@@ -1,13 +1,12 @@
 package com.meteor.homework4.other;
 
 public class DataHolder {                                                                           //singleton
+    private final static DataHolder instance = new DataHolder();
     private String name, contactInfo;
 
-    private final static DataHolder instance=new DataHolder();
-
     private DataHolder() {
-        this.name="";
-        this.contactInfo="";
+        this.name = "";
+        this.contactInfo = "";
     }
 
     public static DataHolder getInstance() {
@@ -19,7 +18,7 @@ public class DataHolder {                                                       
     }
 
     public void setName(String name) {
-        this.name=name;
+        this.name = name;
     }
 
     public String getContactInfo() {
@@ -27,7 +26,7 @@ public class DataHolder {                                                       
     }
 
     public void setContactInfo(String contactInfo) {
-        this.contactInfo=contactInfo;
+        this.contactInfo = contactInfo;
     }
 
 }
