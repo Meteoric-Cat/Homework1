@@ -1,5 +1,8 @@
 package com.meteor.homework4.activity;
 
+import android.content.ContentUris;
+import android.content.ContentValues;
+import android.database.Cursor;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
@@ -10,19 +13,23 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.RelativeLayout;
+import android.widget.Toast;
 
 import com.meteor.homework4.adapter.CustomRvAdapter;
+import com.meteor.homework4.db.CustomContentProvider;
 import com.meteor.homework4.fragment.InputDialog1;
 import com.meteor.homework4.fragment.InputDialog2;
 
+import java.util.LinkedList;
+
 public class MainActivity extends AppCompatActivity implements InputDialog1.ClickHandler, InputDialog2.ClickHandler {
-    private Button btn_add, btn_linear, btn_grid;
+    private Button btn_add, btn_linear, btn_grid, btnDelete, btnCancel;
 
     private RecyclerView rv_info;
     private RecyclerView.LayoutManager rv_infoLiLayoutManager, rv_infoGrLayoutManager;
     private CustomRvAdapter rv_infoAdapter;
 
-    private RelativeLayout rlChildLayout1, rlChildLayout2;
+    private RelativeLayout rlChildLayout1, rlChildLayout2;                                          //fragments...
 
     private InputDialog1 inputDialog1;
     //private InputDialog2 inputDialog2;
@@ -44,6 +51,8 @@ public class MainActivity extends AppCompatActivity implements InputDialog1.Clic
         btn_add = findViewById(R.id.btn_add);
         btn_grid = findViewById(R.id.btn_grid);
         btn_linear = findViewById(R.id.btn_linear);
+        btnDelete = findViewById(R.id.btn_mainDelete);
+        btnCancel = findViewById(R.id.btn_mainCancel);
 
         inputDialog1 = new InputDialog1();
         //inputDialog2 = new InputDialog2();
@@ -60,6 +69,28 @@ public class MainActivity extends AppCompatActivity implements InputDialog1.Clic
 
         rv_infoAdapter = new CustomRvAdapter();
         rv_info.setAdapter(rv_infoAdapter);
+
+        buildInitialRVItems();
+    }
+
+    private void buildInitialRVItems() {
+        try {
+            //getContentResolver().delete(CustomContentProvider.CONTENT_URI,null, null);
+
+            Cursor initialCursor = getContentResolver().query(CustomContentProvider.CONTENT_URI,
+                    null, null, null, null);
+            if ((initialCursor != null) && (initialCursor.getCount() > 0)) {
+                String name = null, contact_info = null;
+                while (initialCursor.moveToNext()) {
+                    name = initialCursor.getString(initialCursor.getColumnIndex(CustomContentProvider.NAME));
+                    contact_info = initialCursor.getString(initialCursor.getColumnIndex(CustomContentProvider.CONTACT_INFO));
+                    this.rv_infoAdapter.addItem(name, contact_info);
+                }
+                Toast.makeText(getApplicationContext(), String.valueOf(this.rv_infoAdapter.getItemCount() + "  " + initialCursor.getCount()), Toast.LENGTH_SHORT).show();
+            }
+        } catch (Exception e) {
+            Toast.makeText(getApplicationContext(), e.getMessage(), Toast.LENGTH_SHORT).show();
+        }
     }
 
     private void buildUIListeners() {
@@ -79,6 +110,16 @@ public class MainActivity extends AppCompatActivity implements InputDialog1.Clic
                         rv_info.setLayoutManager(rv_infoLiLayoutManager);
                         break;
                     }
+                    case R.id.btn_mainDelete: {
+                        handleDelete2();
+                        break;
+                    }
+                    case R.id.btn_mainCancel: {
+                        rlChildLayout2.setVisibility(View.GONE);
+                        rlChildLayout1.setVisibility(View.VISIBLE);
+                        rv_infoAdapter.hideCheckBoxes();
+                        break;
+                    }
                 }
             }
         };
@@ -86,28 +127,14 @@ public class MainActivity extends AppCompatActivity implements InputDialog1.Clic
         btn_add.setOnClickListener(clickListener);
         btn_linear.setOnClickListener(clickListener);
         btn_grid.setOnClickListener(clickListener);
+        btnCancel.setOnClickListener(clickListener);
+        btnDelete.setOnClickListener(clickListener);
 
         rv_info.addOnItemTouchListener(new RecyclerView.OnItemTouchListener() {
             @Override
             public boolean onInterceptTouchEvent(@NonNull RecyclerView recyclerView, @NonNull MotionEvent motionEvent) {
                 View child = recyclerView.findChildViewUnder(motionEvent.getX(), motionEvent.getY());
                 if (child != null) {
-                     /*clickedChild = recyclerView.getChildAdapterPosition(child);
-
-                     String viewContent = ((TextView) child).getText().toString();
-                     String[] info = viewContent.split("\n");
-
-                     DataHolder.getInstance().setName(info[0]);
-                     DataHolder.getInstance().setContactInfo(info[1]);
-
-                     if (inputDialog2.isAdded()) {
-                         return false;
-                     }
-
-                     getSupportFragmentManager().popBackStack();
-                     inputDialog2.show(getSupportFragmentManager().beginTransaction(), getString(R.string.dg_input2tag));
-                     */
-
                      /*GestureDetectorCompat gestureDetectorCompat=new GestureDetectorCompat(getApplicationContext(), new GestureDetector.SimpleOnGestureListener() {
                          @Override
                          public void onLongPress(MotionEvent e) {
@@ -118,9 +145,12 @@ public class MainActivity extends AppCompatActivity implements InputDialog1.Clic
                      });
                      gestureDetectorCompat.onTouchEvent(motionEvent);
                      */
+                    //Toast.makeText(getApplicationContext(),String.valueOf(),Toast.LENGTH_SHORT).show();
+//                    CustomRvAdapter.CustomViewHolder viewHolder=(CustomRvAdapter.CustomViewHolder) recyclerView.findContainingViewHolder(child);
+//                    Toast.makeText(getApplicationContext(),String.valueOf(viewHolder.dataID),Toast.LENGTH_SHORT).show();
 
                     if (motionEvent.getAction() == MotionEvent.ACTION_UP) {
-                        if ((motionEvent.getEventTime() - motionEvent.getDownTime())>requireHoldTime){
+                        if ((motionEvent.getEventTime() - motionEvent.getDownTime()) > requireHoldTime) {
                             rv_infoAdapter.displayCheckBoxes();
                             rlChildLayout1.setVisibility(View.GONE);
                             rlChildLayout2.setVisibility(View.VISIBLE);
@@ -145,6 +175,17 @@ public class MainActivity extends AppCompatActivity implements InputDialog1.Clic
 
     @Override
     public void handleSave1(String name, String contactInfo) {
+        try {
+            ContentValues contentValues = new ContentValues();
+            contentValues.put(CustomContentProvider.NAME, name);
+            contentValues.put(CustomContentProvider.CONTACT_INFO, contactInfo);
+
+            getContentResolver().insert(CustomContentProvider.CONTENT_URI, contentValues);
+        } catch (Exception e) {
+            Toast.makeText(getApplicationContext(), e.getMessage(), Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         rv_infoAdapter.addItem(name, contactInfo);
     }
 
@@ -155,6 +196,18 @@ public class MainActivity extends AppCompatActivity implements InputDialog1.Clic
 
     @Override
     public void handleDelete2() {
-        rv_infoAdapter.deleteItem(clickedChild);
+        LinkedList<Integer> list = this.rv_infoAdapter.getChosenList();
+        //String selection = CustomContentProvider.PRIMARY_KEY + " = ?";
+
+        for (Integer iter : list) {
+            try {
+                getContentResolver().delete(ContentUris.withAppendedId(CustomContentProvider.CONTENT_URI,iter.longValue()),
+                        null, null);
+            } catch (Exception e) {
+                Toast.makeText(getApplicationContext(), e.getMessage(), Toast.LENGTH_SHORT).show();
+                continue;
+            }
+            rv_infoAdapter.deleteItem(iter);
+        }
     }
 }
