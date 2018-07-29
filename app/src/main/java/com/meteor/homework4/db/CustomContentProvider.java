@@ -10,7 +10,6 @@ import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
@@ -84,7 +83,7 @@ public class CustomContentProvider extends ContentProvider {
     @Override
     public boolean onCreate() {
         DatabaseHelper databaseHelper = new DatabaseHelper(getContext(), DATABASE_NAME, DATABASE_VERSION);
-        this.sqLiteDatabase=databaseHelper.getWritableDatabase();
+        this.sqLiteDatabase = databaseHelper.getWritableDatabase();
 
         return (this.sqLiteDatabase == null) ? false : true;
     }

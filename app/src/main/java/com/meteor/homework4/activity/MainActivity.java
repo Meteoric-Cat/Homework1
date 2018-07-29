@@ -5,7 +5,6 @@ import android.content.ContentValues;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Looper;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.LoaderManager;
@@ -26,19 +25,25 @@ import com.meteor.homework4.db.CustomCursorLoader;
 import com.meteor.homework4.fragment.InputDialog1;
 import com.meteor.homework4.fragment.InputDialog2;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity
         implements InputDialog1.ClickHandler, InputDialog2.ClickHandler, LoaderManager.LoaderCallbacks<Cursor> {
 
-    private static final long requireHoldTime = 1000;
-    private static final int INVALID_KEY = -1;
+    private final long requireHoldTime = 1000;
+    private final int INVALID_KEY = -1;
+    private final String DELETE_LIST_KEY = "hello";
+    private final String INSERTED_ANNOUNCEMENT = "Insert into database";
+    private final String DELETED_ANNOUNCEMENT = "Deleted in database";
+    private final String DELETING_ANNOUNCEMENT = "In deleting progress. Can not solve this request";
 
-    private Button btn_add, btn_linear, btn_grid, btnDelete, btnCancel;
+    private Button btnAdd, btnLinear, btnGrid, btnDelete, btnCancel;
 
-    private RecyclerView rv_info;
-    private RecyclerView.LayoutManager rv_infoLiLayoutManager, rv_infoGrLayoutManager;
-    private CustomRvAdapter rv_infoAdapter;
+    private RecyclerView rvInfo;
+    private RecyclerView.LayoutManager rvInfoLiLayoutManager, rvInfoGrLayoutManager;
+    private CustomRvAdapter rvInfoAdapter;
 
     private RelativeLayout rlChildLayout1, rlChildLayout2;                                          //fragments...
 
@@ -48,20 +53,22 @@ public class MainActivity extends AppCompatActivity
     private int clickedChild;
 
     private LoaderManager loaderManager;
+    private boolean deletingCheck;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        buildLogicComponents();
         buildUIViews();
         buildUIListeners();
     }
 
     private void buildUIViews() {
-        btn_add = findViewById(R.id.btn_add);
-        btn_grid = findViewById(R.id.btn_grid);
-        btn_linear = findViewById(R.id.btn_linear);
+        btnAdd = findViewById(R.id.btn_add);
+        btnGrid = findViewById(R.id.btn_grid);
+        btnLinear = findViewById(R.id.btn_linear);
         btnDelete = findViewById(R.id.btn_mainDelete);
         btnCancel = findViewById(R.id.btn_mainCancel);
 
@@ -72,23 +79,22 @@ public class MainActivity extends AppCompatActivity
         rlChildLayout2 = findViewById(R.id.rl_childLayout2);
 
         //build RecyclerView
-        rv_info = findViewById(R.id.rv_info);
+        rvInfo = findViewById(R.id.rv_info);
 
-        rv_infoGrLayoutManager = new GridLayoutManager(this, getResources().getInteger(R.integer.GridLayout_ColumnAmount));
-        rv_infoLiLayoutManager = new LinearLayoutManager(this);
-        rv_info.setLayoutManager(rv_infoLiLayoutManager);
+        rvInfoGrLayoutManager = new GridLayoutManager(this, getResources().getInteger(R.integer.GridLayout_ColumnAmount));
+        rvInfoLiLayoutManager = new LinearLayoutManager(this);
+        rvInfo.setLayoutManager(rvInfoLiLayoutManager);
 
-        rv_infoAdapter = new CustomRvAdapter();
-        rv_info.setAdapter(rv_infoAdapter);
+        rvInfoAdapter = new CustomRvAdapter();
+        rvInfo.setAdapter(rvInfoAdapter);
 
         buildInitialRVItems();
     }
 
     private void buildInitialRVItems() {
-        loaderManager = getSupportLoaderManager();
         try {
-            //getContentResolver().delete(CustomContentProvider.CONTENT_URI,null, null);
-
+            getContentResolver().delete(CustomContentProvider.CONTENT_URI, null, null);
+            /*
             Cursor initialCursor = getContentResolver().query(CustomContentProvider.CONTENT_URI,
                     null, null, null, null);
 
@@ -102,11 +108,16 @@ public class MainActivity extends AppCompatActivity
                 }
             }
             initialCursor.close();
-
-            //loaderManager.initLoader(CustomCursorLoader.INITIAL_TYPE, null, this);
+            */
+            loaderManager.initLoader(CustomCursorLoader.INITIAL_TYPE, null, this).forceLoad();
         } catch (Exception e) {
             Toast.makeText(getApplicationContext(), e.getMessage(), Toast.LENGTH_SHORT).show();
         }
+    }
+
+    private void buildLogicComponents() {
+        this.loaderManager = getSupportLoaderManager();
+        this.deletingCheck = false;
     }
 
     private void buildUIListeners() {
@@ -115,18 +126,18 @@ public class MainActivity extends AppCompatActivity
             public void onClick(View view) {
                 switch (view.getId()) {
                     case R.id.btn_add:
-                        rv_infoAdapter.hideCheckBoxes();
+                        rvInfoAdapter.hideCheckBoxes();
                         rlChildLayout2.setVisibility(View.GONE);
                         rlChildLayout1.setVisibility(View.VISIBLE);
                         getSupportFragmentManager().popBackStack();
                         inputDialog1.show(getSupportFragmentManager().beginTransaction(), getString(R.string.dg_input1tag));
                         break;
                     case R.id.btn_grid: {
-                        rv_info.setLayoutManager(rv_infoGrLayoutManager);
+                        rvInfo.setLayoutManager(rvInfoGrLayoutManager);
                         break;
                     }
                     case R.id.btn_linear: {
-                        rv_info.setLayoutManager(rv_infoLiLayoutManager);
+                        rvInfo.setLayoutManager(rvInfoLiLayoutManager);
                         break;
                     }
                     case R.id.btn_mainDelete: {
@@ -136,35 +147,36 @@ public class MainActivity extends AppCompatActivity
                     case R.id.btn_mainCancel: {
                         rlChildLayout2.setVisibility(View.GONE);
                         rlChildLayout1.setVisibility(View.VISIBLE);
-                        rv_infoAdapter.hideCheckBoxes();
+                        rvInfoAdapter.hideCheckBoxes();
                         break;
                     }
                 }
             }
         };
 
-        btn_add.setOnClickListener(clickListener);
-        btn_linear.setOnClickListener(clickListener);
-        btn_grid.setOnClickListener(clickListener);
+        btnAdd.setOnClickListener(clickListener);
+        btnLinear.setOnClickListener(clickListener);
+        btnGrid.setOnClickListener(clickListener);
         btnCancel.setOnClickListener(clickListener);
         btnDelete.setOnClickListener(clickListener);
 
-        rv_info.addOnItemTouchListener(new RecyclerView.OnItemTouchListener() {
+        rvInfo.addOnItemTouchListener(new RecyclerView.OnItemTouchListener() {
             @Override
             public boolean onInterceptTouchEvent(@NonNull RecyclerView recyclerView, @NonNull MotionEvent motionEvent) {
                 View child = recyclerView.findChildViewUnder(motionEvent.getX(), motionEvent.getY());
                 if (child != null) {
                     CustomRvAdapter.CustomViewHolder viewHolder = (CustomRvAdapter.CustomViewHolder) recyclerView.findContainingViewHolder(child);
-                    rv_infoAdapter.checkboxListener.clickedDataID = viewHolder.dataID;
+                    rvInfoAdapter.checkboxListener.clickedDataID = viewHolder.dataID;
 
                     if (motionEvent.getAction() == MotionEvent.ACTION_UP) {
                         if ((motionEvent.getEventTime() - motionEvent.getDownTime()) > requireHoldTime) {
-                            rv_infoAdapter.displayCheckBoxes();
+                            rvInfoAdapter.displayCheckBoxes();
                             rlChildLayout1.setVisibility(View.GONE);
                             rlChildLayout2.setVisibility(View.VISIBLE);
                             return true;
                         }
                     }
+                    //else ...
                 }
                 return false;
             }
@@ -186,7 +198,7 @@ public class MainActivity extends AppCompatActivity
             while (cursor.moveToNext()) {
                 name = cursor.getString(cursor.getColumnIndex(CustomContentProvider.NAME));
                 contactInfo = cursor.getString(cursor.getColumnIndex(CustomContentProvider.CONTACT_INFO));
-                this.rv_infoAdapter.addItem(name, contactInfo);
+                this.rvInfoAdapter.addItem(name, contactInfo);
             }
         }
     }
@@ -194,12 +206,13 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void handleSave1(String name, String contactInfo) {
         try {
- /*           ContentValues contentValues = new ContentValues();
+            /*
+            ContentValues contentValues = new ContentValues();
             contentValues.put(CustomContentProvider.NAME, name);
             contentValues.put(CustomContentProvider.CONTACT_INFO, contactInfo);
 
             getContentResolver().insert(CustomContentProvider.CONTENT_URI, contentValues);
-*/
+            */
 
             Bundle bundle = new Bundle();
             bundle.putInt(CustomContentProvider.PRIMARY_KEY, INVALID_KEY);
@@ -213,30 +226,45 @@ public class MainActivity extends AppCompatActivity
             return;
         }
 
-        rv_infoAdapter.addItem(name, contactInfo);
+        rvInfoAdapter.addItem(name, contactInfo);
     }
 
     @Override
     public void handleSave2(String name, String contactInfo) {
-        rv_infoAdapter.updateItem(clickedChild, name, contactInfo);
+        rvInfoAdapter.updateItem(clickedChild, name, contactInfo);
     }
 
     @Override
     public void handleDelete2() {
-        LinkedList<Integer> list = this.rv_infoAdapter.getChosenList();
-        //String selection = CustomContentProvider.PRIMARY_KEY + " = ?";
-        int deletedAmount = 0;
+        if (deletingCheck) {
+            Toast.makeText(getApplicationContext(), DELETING_ANNOUNCEMENT, Toast.LENGTH_SHORT).show();
+            return;
+        } else {
+            deletingCheck = true;
+        }
 
+        LinkedList<Integer> list = this.rvInfoAdapter.getChosenList();                              //getting an ArrayList from function raised some problems
+        ArrayList<Integer> deletedList = new ArrayList<Integer>((List<Integer>) list);
+
+        Bundle bundle = new Bundle();
+        bundle.putIntegerArrayList(DELETE_LIST_KEY, deletedList);
+        this.loaderManager.restartLoader(CustomCursorLoader.DELETE_TYPE, bundle, this).forceLoad();
+
+        int deletedAmount = 0;
         for (Integer iter : list) {
+            /*
             try {
                 int count = getContentResolver().delete(
                         ContentUris.withAppendedId(CustomContentProvider.CONTENT_URI, iter.longValue() + 1 - deletedAmount), null, null);
+
                 deletedAmount++;
             } catch (Exception e) {
                 Toast.makeText(getApplicationContext(), e.getMessage(), Toast.LENGTH_SHORT).show();
                 continue;
             }
-            rv_infoAdapter.deleteItem(iter + 1 - deletedAmount);
+            */
+            deletedAmount++;
+            rvInfoAdapter.deleteItem(iter + 1 - deletedAmount);
             //can delete all before updating database again
         }
     }
@@ -251,7 +279,6 @@ public class MainActivity extends AppCompatActivity
         int key = bundle.getInt(CustomContentProvider.PRIMARY_KEY);
         Uri uri = (key == INVALID_KEY) ? CustomContentProvider.CONTENT_URI :
                 ContentUris.withAppendedId(CustomContentProvider.CONTENT_URI, key);
-        Toast.makeText(getApplicationContext(),uri.toString(),Toast.LENGTH_SHORT).show();
 
         return new CustomCursorLoader(this, CustomCursorLoader.INSERT_TYPE,
                 uri, contentValues, null, null);
@@ -266,8 +293,11 @@ public class MainActivity extends AppCompatActivity
         int key = bundle.getInt(CustomContentProvider.PRIMARY_KEY);
         Uri uri = (key == INVALID_KEY) ? CustomContentProvider.CONTENT_URI :
                 ContentUris.withAppendedId(CustomContentProvider.CONTENT_URI, key);
-        return new CustomCursorLoader(this, CustomCursorLoader.DELETE_TYPE, uri,
-                null, null, null);
+
+        //return new CustomCursorLoader(this, CustomCursorLoader.DELETE_TYPE, uri,
+        //        null, null, null);
+        return new CustomCursorLoader(this, CustomCursorLoader.DELETE_TYPE, CustomContentProvider.CONTENT_URI,
+                bundle.getIntegerArrayList(DELETE_LIST_KEY));
     }
 
     private CustomCursorLoader createUpdateLoader(Bundle bundle) {
@@ -281,7 +311,8 @@ public class MainActivity extends AppCompatActivity
         CustomCursorLoader loader = null;
         switch (id % 10) {
             case CustomCursorLoader.INITIAL_TYPE:
-                loader = new CustomCursorLoader(this, CustomCursorLoader.INITIAL_TYPE, CustomContentProvider.CONTENT_URI);
+                loader = new CustomCursorLoader(this, CustomCursorLoader.INITIAL_TYPE,
+                        CustomContentProvider.CONTENT_URI, null);
                 break;
 
             case CustomCursorLoader.INSERT_TYPE: {
@@ -311,21 +342,25 @@ public class MainActivity extends AppCompatActivity
     public void onLoadFinished(@NonNull Loader<Cursor> loader, Cursor cursor) {
         CustomCursorLoader temp = (CustomCursorLoader) loader;
         switch (temp.getType()) {
-            case CustomCursorLoader.INITIAL_TYPE:
+            case CustomCursorLoader.INITIAL_TYPE: {
                 this.displayInitialData(cursor);
                 break;
-            case CustomCursorLoader.INSERT_TYPE:
-                Toast.makeText(getApplicationContext(),"Inserted",Toast.LENGTH_SHORT).show();
+            }
+
+            case CustomCursorLoader.INSERT_TYPE: {
+                Toast.makeText(getApplicationContext(), INSERTED_ANNOUNCEMENT, Toast.LENGTH_SHORT).show();
                 break;
-            case CustomCursorLoader.DELETE_TYPE:
-                Toast.makeText(getApplicationContext(),"Deleted",Toast.LENGTH_SHORT).show();
+            }
+            case CustomCursorLoader.DELETE_TYPE: {
+                deletingCheck = false;
+                Toast.makeText(getApplicationContext(), DELETED_ANNOUNCEMENT, Toast.LENGTH_SHORT).show();
                 break;
+            }
         }
     }
 
     @Override
     public void onLoaderReset(@NonNull Loader<Cursor> loader) {
-
     }
 }
 

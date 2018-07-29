@@ -1,12 +1,13 @@
 package com.meteor.homework4.db;
 
+import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
-import android.os.Looper;
 import android.support.v4.content.AsyncTaskLoader;
-import android.widget.Toast;
+
+import java.util.ArrayList;
 
 public class CustomCursorLoader extends AsyncTaskLoader<Cursor> {                                   //extends CursorLoader
     public static final int INITIAL_TYPE = 0;
@@ -21,11 +22,14 @@ public class CustomCursorLoader extends AsyncTaskLoader<Cursor> {               
     private String[] projectMap, selectionArgs;
     private String selection, sortOrder;
 
-    public CustomCursorLoader(Context context, int type, Uri baseUri) {
+    private ArrayList<Integer> deletedList;
+
+    public CustomCursorLoader(Context context, int type, Uri baseUri, ArrayList<Integer> deletedList) {
         super(context);
 
         this.type = type;
         this.baseUri = baseUri;
+        this.deletedList = deletedList;
 
         this.contentValues = null;
         this.projectMap = null;
@@ -45,6 +49,7 @@ public class CustomCursorLoader extends AsyncTaskLoader<Cursor> {               
         this.selection = null;
         this.selectionArgs = null;
         this.sortOrder = null;
+        this.deletedList = null;
     }
 
     public CustomCursorLoader(Context context, int type, Uri baseUri, String[] projectMap, String selection, String[] selectionArgs, String sortOrder) {
@@ -58,6 +63,7 @@ public class CustomCursorLoader extends AsyncTaskLoader<Cursor> {               
         this.sortOrder = sortOrder;
 
         this.contentValues = null;
+        this.deletedList = null;
     }
 
     @Override
@@ -65,22 +71,36 @@ public class CustomCursorLoader extends AsyncTaskLoader<Cursor> {               
         Cursor result = null;
 
         switch (type) {
-            case INITIAL_TYPE:
+            case INITIAL_TYPE: {
                 result = getContext().getContentResolver().query(baseUri,
                         null, null, null, null);
                 break;
-            case INSERT_TYPE:
+            }
+
+            case INSERT_TYPE: {
                 getContext().getContentResolver().insert(baseUri, this.contentValues);
                 break;
-            case QUERY_TYPE:
+            }
+
+            case QUERY_TYPE: {
                 result = getContext().getContentResolver().query(baseUri, projectMap, selection, selectionArgs, sortOrder);
                 break;
-            case DELETE_TYPE:
-                getContext().getContentResolver().delete(baseUri, selection, selectionArgs);
+            }
+
+            case DELETE_TYPE: {
+                int deletedAmount = 0;
+                for (Integer value : this.deletedList) {
+                    getContext().getContentResolver().delete(ContentUris.withAppendedId(baseUri, value.longValue() + 1 - deletedAmount),
+                            selection, selectionArgs);
+                    deletedAmount++;
+                }
                 break;
-            case UPDATE_TYPE:
+            }
+
+            case UPDATE_TYPE: {
                 getContext().getContentResolver().update(baseUri, contentValues, selection, selectionArgs);
                 break;
+            }
         }
         //Looper.prepare();
         //Toast.makeText(getContext().getApplicationContext(),"hello",Toast.LENGTH_SHORT).show();

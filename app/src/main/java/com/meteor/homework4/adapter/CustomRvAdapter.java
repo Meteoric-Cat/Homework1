@@ -40,13 +40,6 @@ public class CustomRvAdapter extends RecyclerView.Adapter {
         }
     }
 
-    //private static View.OnClickListener checkboxesListener = new View.OnClickListener() {
-    //    @Override
-    //    public void onClick(View view) {
-    //        ((CheckBox) view).setChecked(!((CheckBox) view).isChecked());
-    //    }
-    //};
-
     public static class CheckBoxListener implements View.OnClickListener {
         public LinkedList<Short> checkboxState;
         public int clickedDataID;
@@ -149,19 +142,6 @@ public class CustomRvAdapter extends RecyclerView.Adapter {
         }
     }
 
-//    public void checkCheckBox(CustomViewHolder viewHolder) {
-//        if (viewHolder.cbChoice.getVisibility() == View.VISIBLE) {
-//            if (viewHolder.cbChoice.isChecked()) {
-//                this.checkboxState.set(viewHolder.dataID, DISPLAY_AND_CHECKED);
-//            } else {
-//                this.checkboxState.set(viewHolder.dataID, DISPLAY_NOT_CHECKED);
-//            }
-//        } else {
-//            this.checkboxState.set(viewHolder.dataID, NOT_DISPLAY);
-//        }
-//        Log.d(String.valueOf(viewHolder.dataID), String.valueOf(this.checkboxState.get(viewHolder.dataID).shortValue()));
-//    }
-
     public void addItem(String name, String contactInfo) {
         Person person = new Person(name, contactInfo);
 
@@ -194,7 +174,7 @@ public class CustomRvAdapter extends RecyclerView.Adapter {
 
         for (Short value : this.checkboxListener.checkboxState) {
             if (value.shortValue() == DISPLAY_AND_CHECKED) {
-                result.add(new Integer(index));
+                result.add(new Integer(index + 1));
             }
             index++;
         }
