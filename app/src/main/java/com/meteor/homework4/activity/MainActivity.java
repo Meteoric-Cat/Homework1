@@ -93,7 +93,7 @@ public class MainActivity extends AppCompatActivity
 
     private void buildInitialRVItems() {
         try {
-            getContentResolver().delete(CustomContentProvider.CONTENT_URI, null, null);
+            //getContentResolver().delete(CustomContentProvider.CONTENT_URI, null, null);
             /*
             Cursor initialCursor = getContentResolver().query(CustomContentProvider.CONTENT_URI,
                     null, null, null, null);
@@ -134,10 +134,12 @@ public class MainActivity extends AppCompatActivity
                         break;
                     case R.id.btn_grid: {
                         rvInfo.setLayoutManager(rvInfoGrLayoutManager);
+                        rvInfoAdapter.hideCheckBoxes();
                         break;
                     }
                     case R.id.btn_linear: {
                         rvInfo.setLayoutManager(rvInfoLiLayoutManager);
+                        rvInfoAdapter.hideCheckBoxes();
                         break;
                     }
                     case R.id.btn_mainDelete: {

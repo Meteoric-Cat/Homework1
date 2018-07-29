@@ -99,7 +99,7 @@ public class CustomRvAdapter extends RecyclerView.Adapter {
     private void setCheckbox(CheckBox view, short state) {
         switch (state) {
             case NOT_DISPLAY:
-                view.setVisibility(View.INVISIBLE);
+                view.setVisibility(View.GONE);
                 break;
             case DISPLAY_NOT_CHECKED:
                 view.setChecked(false);
@@ -134,7 +134,7 @@ public class CustomRvAdapter extends RecyclerView.Adapter {
 
         int amount = this.checkboxListener.checkboxState.size();
         for (int i = 0; i < amount; i++) {
-            this.checkboxListener.checkboxState.set(0, NOT_DISPLAY);
+            this.checkboxListener.checkboxState.set(i, NOT_DISPLAY);
         }
 
         for (CustomViewHolder viewHolder : this.holderList) {
@@ -174,7 +174,7 @@ public class CustomRvAdapter extends RecyclerView.Adapter {
 
         for (Short value : this.checkboxListener.checkboxState) {
             if (value.shortValue() == DISPLAY_AND_CHECKED) {
-                result.add(new Integer(index + 1));
+                result.add(new Integer(index));
             }
             index++;
         }
