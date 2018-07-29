@@ -10,6 +10,7 @@ import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
@@ -46,6 +47,7 @@ public class CustomContentProvider extends ContentProvider {
     private static final int idPostion = 1;
 
     private SQLiteDatabase sqLiteDatabase;
+
     private static final String DATABASE_NAME = "PEOPLE_INFOMATION";
     private static final String PEOPLE_TABLE_NAME = "people";
     private static final int DATABASE_VERSION = 1;
@@ -60,7 +62,7 @@ public class CustomContentProvider extends ContentProvider {
     private static final String UNKNOWN_URI_EXCEPTION = " is unknown";
     private static final String UNSUPPORTED_URI = " is not supported";
 
-    private static class DatabaseHelper extends SQLiteOpenHelper {
+    public static class DatabaseHelper extends SQLiteOpenHelper {
 
         DatabaseHelper(Context context, String databaseName, int databaseVersion) {
             super(context, databaseName, null, databaseVersion);
@@ -78,10 +80,12 @@ public class CustomContentProvider extends ContentProvider {
         }
     }
 
+
     @Override
     public boolean onCreate() {
         DatabaseHelper databaseHelper = new DatabaseHelper(getContext(), DATABASE_NAME, DATABASE_VERSION);
-        this.sqLiteDatabase = databaseHelper.getWritableDatabase();
+        this.sqLiteDatabase=databaseHelper.getWritableDatabase();
+
         return (this.sqLiteDatabase == null) ? false : true;
     }
 
@@ -134,21 +138,21 @@ public class CustomContentProvider extends ContentProvider {
             case PEOPLE_CODE:
                 count = this.sqLiteDatabase.delete(PEOPLE_TABLE_NAME, selection, selectionArgs);
                 //reset database id sequence
-                String update0="UPDATE SQLITE_SEQUENCE SET SEQ=0 WHERE NAME='"+ PEOPLE_TABLE_NAME+"'";
+                String update0 = "UPDATE SQLITE_SEQUENCE SET SEQ=0 WHERE NAME='" + PEOPLE_TABLE_NAME + "'";
                 this.sqLiteDatabase.execSQL(update0);
                 break;
 
             case PERSON_CODE:
                 String id = uri.getPathSegments().get(idPostion);
                 String realSelection = PRIMARY_KEY + " = " + id + (TextUtils.isEmpty(selection) ? "" : "AND (" + selection + ")");
-                Log.d("selection:",realSelection);
+                Log.d("selection:", realSelection);
 
                 count = this.sqLiteDatabase.delete(PEOPLE_TABLE_NAME, realSelection, selectionArgs);
-                Log.d("count",String.valueOf(count));
+                Log.d("count", String.valueOf(count));
 
-                String update1="UPDATE "+PEOPLE_TABLE_NAME+" SET "+PRIMARY_KEY+" = ("+PRIMARY_KEY+"-1) WHERE "+PRIMARY_KEY+" > "+id;
+                String update1 = "UPDATE " + PEOPLE_TABLE_NAME + " SET " + PRIMARY_KEY + " = (" + PRIMARY_KEY + "-1) WHERE " + PRIMARY_KEY + " > " + id;
                 this.sqLiteDatabase.execSQL(update1);
-                String update2="UPDATE SQLITE_SEQUENCE SET SEQ = (SEQ-1) WHERE NAME = '"+PEOPLE_TABLE_NAME+"'";
+                String update2 = "UPDATE SQLITE_SEQUENCE SET SEQ = (SEQ-1) WHERE NAME = '" + PEOPLE_TABLE_NAME + "'";
                 this.sqLiteDatabase.execSQL(update2);
                 break;
 
