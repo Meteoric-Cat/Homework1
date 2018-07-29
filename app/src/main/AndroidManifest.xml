@@ -19,7 +19,8 @@
         
         <provider
             android:authorities="com.meteor.homework4.db.CustomContentProvider"
-            android:name="com.meteor.homework4.db.CustomContentProvider"/>
+            android:name="com.meteor.homework4.db.CustomContentProvider"
+            android:exported="true"/>
     </application>
 
 </manifest>

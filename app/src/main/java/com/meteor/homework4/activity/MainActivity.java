@@ -81,13 +81,16 @@ public class MainActivity extends AppCompatActivity implements InputDialog1.Clic
                     null, null, null, null);
             if ((initialCursor != null) && (initialCursor.getCount() > 0)) {
                 String name = null, contact_info = null;
+                int id = 0;
+
                 while (initialCursor.moveToNext()) {
+                    id = initialCursor.getInt(initialCursor.getColumnIndex(CustomContentProvider.PRIMARY_KEY));
                     name = initialCursor.getString(initialCursor.getColumnIndex(CustomContentProvider.NAME));
                     contact_info = initialCursor.getString(initialCursor.getColumnIndex(CustomContentProvider.CONTACT_INFO));
                     this.rv_infoAdapter.addItem(name, contact_info);
                 }
-                Toast.makeText(getApplicationContext(), String.valueOf(this.rv_infoAdapter.getItemCount() + "  " + initialCursor.getCount()), Toast.LENGTH_SHORT).show();
             }
+            initialCursor.close();
         } catch (Exception e) {
             Toast.makeText(getApplicationContext(), e.getMessage(), Toast.LENGTH_SHORT).show();
         }
@@ -99,6 +102,9 @@ public class MainActivity extends AppCompatActivity implements InputDialog1.Clic
             public void onClick(View view) {
                 switch (view.getId()) {
                     case R.id.btn_add:
+                        rv_infoAdapter.hideCheckBoxes();
+                        rlChildLayout2.setVisibility(View.GONE);
+                        rlChildLayout1.setVisibility(View.VISIBLE);
                         getSupportFragmentManager().popBackStack();
                         inputDialog1.show(getSupportFragmentManager().beginTransaction(), getString(R.string.dg_input1tag));
                         break;
@@ -135,19 +141,8 @@ public class MainActivity extends AppCompatActivity implements InputDialog1.Clic
             public boolean onInterceptTouchEvent(@NonNull RecyclerView recyclerView, @NonNull MotionEvent motionEvent) {
                 View child = recyclerView.findChildViewUnder(motionEvent.getX(), motionEvent.getY());
                 if (child != null) {
-                     /*GestureDetectorCompat gestureDetectorCompat=new GestureDetectorCompat(getApplicationContext(), new GestureDetector.SimpleOnGestureListener() {
-                         @Override
-                         public void onLongPress(MotionEvent e) {
-                             super.onLongPress(e);
-                             rv_infoAdapter.displayCheckBoxes();
-
-                         }
-                     });
-                     gestureDetectorCompat.onTouchEvent(motionEvent);
-                     */
-                    //Toast.makeText(getApplicationContext(),String.valueOf(),Toast.LENGTH_SHORT).show();
-//                    CustomRvAdapter.CustomViewHolder viewHolder=(CustomRvAdapter.CustomViewHolder) recyclerView.findContainingViewHolder(child);
-//                    Toast.makeText(getApplicationContext(),String.valueOf(viewHolder.dataID),Toast.LENGTH_SHORT).show();
+                    CustomRvAdapter.CustomViewHolder viewHolder = (CustomRvAdapter.CustomViewHolder) recyclerView.findContainingViewHolder(child);
+                    rv_infoAdapter.checkboxListener.clickedDataID = viewHolder.dataID;
 
                     if (motionEvent.getAction() == MotionEvent.ACTION_UP) {
                         if ((motionEvent.getEventTime() - motionEvent.getDownTime()) > requireHoldTime) {
@@ -167,7 +162,6 @@ public class MainActivity extends AppCompatActivity implements InputDialog1.Clic
 
             @Override
             public void onRequestDisallowInterceptTouchEvent(boolean b) {
-
             }
         });
 
@@ -198,16 +192,18 @@ public class MainActivity extends AppCompatActivity implements InputDialog1.Clic
     public void handleDelete2() {
         LinkedList<Integer> list = this.rv_infoAdapter.getChosenList();
         //String selection = CustomContentProvider.PRIMARY_KEY + " = ?";
+        int deletedAmount = 0;
 
         for (Integer iter : list) {
             try {
-                getContentResolver().delete(ContentUris.withAppendedId(CustomContentProvider.CONTENT_URI,iter.longValue()),
-                        null, null);
+                int count = getContentResolver().delete(
+                        ContentUris.withAppendedId(CustomContentProvider.CONTENT_URI, iter.longValue() + 1 - deletedAmount), null, null);
+                deletedAmount++;
             } catch (Exception e) {
                 Toast.makeText(getApplicationContext(), e.getMessage(), Toast.LENGTH_SHORT).show();
                 continue;
             }
-            rv_infoAdapter.deleteItem(iter);
+            rv_infoAdapter.deleteItem(iter  + 1 - deletedAmount);
         }
     }
 }

@@ -16,13 +16,13 @@ import java.util.LinkedList;
 
 public class CustomRvAdapter extends RecyclerView.Adapter {
     private LinkedList<Person> personList;
-    private LinkedList<Short> checkboxState;                                                        //0-none 1-display but not checked 2-checked
     private LinkedList<CustomViewHolder> holderList;
     private boolean displayCheck;
+    public CheckBoxListener checkboxListener;
 
-    private static final int NOT_DISPLAY = 0;
-    private static final int DISPLAY_NOT_CHECKED = 1;
-    private static final int DISPLAY_AND_CHECKED = 2;
+    private static final short NOT_DISPLAY = 0;
+    private static final short DISPLAY_NOT_CHECKED = 1;
+    private static final short DISPLAY_AND_CHECKED = 2;
 
     public static class CustomViewHolder extends RecyclerView.ViewHolder {
         public RelativeLayout itemView;
@@ -47,12 +47,32 @@ public class CustomRvAdapter extends RecyclerView.Adapter {
     //    }
     //};
 
+    public static class CheckBoxListener implements View.OnClickListener {
+        public LinkedList<Short> checkboxState;
+        public int clickedDataID;
+
+        public CheckBoxListener() {
+            super();
+            this.checkboxState = new LinkedList<Short>();
+        }
+
+        @Override
+        public void onClick(View view) {
+            if (((CheckBox) view).isChecked()) {
+                checkboxState.set(clickedDataID, DISPLAY_AND_CHECKED);
+            } else {
+                checkboxState.set(clickedDataID, DISPLAY_NOT_CHECKED);
+            }
+        }
+    }
+
+
     public CustomRvAdapter() {
         super();
         this.personList = new LinkedList<Person>();
         this.holderList = new LinkedList<CustomViewHolder>();
-        this.checkboxState = new LinkedList<Short>();
         this.displayCheck = false;
+        this.checkboxListener = new CheckBoxListener();
     }
 
     @NonNull
@@ -63,6 +83,7 @@ public class CustomRvAdapter extends RecyclerView.Adapter {
 
         CustomViewHolder viewHolder = new CustomViewHolder(itemView);
         this.holderList.add(viewHolder);
+        viewHolder.cbChoice.setOnClickListener(this.checkboxListener);
         return viewHolder;
     }
 
@@ -71,8 +92,8 @@ public class CustomRvAdapter extends RecyclerView.Adapter {
         ((CustomViewHolder) viewHolder).tvName.setText(this.personList.get(position).getName());
         ((CustomViewHolder) viewHolder).tvContactNumber.setText(this.personList.get(position).getContactInfo());
         ((CustomViewHolder) viewHolder).dataID = position;
-        if (this.checkboxState.size() > position) {
-            this.setCheckbox(((CustomViewHolder) viewHolder).cbChoice, this.checkboxState.get(position));
+        if (this.checkboxListener.checkboxState.size() > position) {
+            this.setCheckbox(((CustomViewHolder) viewHolder).cbChoice, this.checkboxListener.checkboxState.get(position));
         }
         //viewHolder.itemView.setTag(viewHolder.getAdapterPosition());
     }
@@ -82,7 +103,7 @@ public class CustomRvAdapter extends RecyclerView.Adapter {
         return personList.size();
     }
 
-    private void setCheckbox(CheckBox view, int state) {
+    private void setCheckbox(CheckBox view, short state) {
         switch (state) {
             case NOT_DISPLAY:
                 view.setVisibility(View.INVISIBLE);
@@ -105,6 +126,11 @@ public class CustomRvAdapter extends RecyclerView.Adapter {
             displayCheck = true;
         }
 
+        int amount = this.checkboxListener.checkboxState.size();
+        for (int i = 0; i < amount; i++) {
+            this.checkboxListener.checkboxState.set(i, DISPLAY_NOT_CHECKED);
+        }
+
         for (CustomViewHolder viewHolder : this.holderList) {
             this.setCheckbox(viewHolder.cbChoice, DISPLAY_NOT_CHECKED);
         }
@@ -112,16 +138,37 @@ public class CustomRvAdapter extends RecyclerView.Adapter {
 
     public void hideCheckBoxes() {
         displayCheck = false;
+
+        int amount = this.checkboxListener.checkboxState.size();
+        for (int i = 0; i < amount; i++) {
+            this.checkboxListener.checkboxState.set(0, NOT_DISPLAY);
+        }
+
         for (CustomViewHolder viewHolder : this.holderList) {
             this.setCheckbox(viewHolder.cbChoice, NOT_DISPLAY);
         }
     }
 
+//    public void checkCheckBox(CustomViewHolder viewHolder) {
+//        if (viewHolder.cbChoice.getVisibility() == View.VISIBLE) {
+//            if (viewHolder.cbChoice.isChecked()) {
+//                this.checkboxState.set(viewHolder.dataID, DISPLAY_AND_CHECKED);
+//            } else {
+//                this.checkboxState.set(viewHolder.dataID, DISPLAY_NOT_CHECKED);
+//            }
+//        } else {
+//            this.checkboxState.set(viewHolder.dataID, NOT_DISPLAY);
+//        }
+//        Log.d(String.valueOf(viewHolder.dataID), String.valueOf(this.checkboxState.get(viewHolder.dataID).shortValue()));
+//    }
+
     public void addItem(String name, String contactInfo) {
         Person person = new Person(name, contactInfo);
-        personList.add(person);
 
-        this.notifyItemInserted(personList.size() - 1);
+        this.personList.add(person);
+        this.checkboxListener.checkboxState.add(NOT_DISPLAY);
+
+        this.notifyItemInserted(this.personList.size() - 1);
     }
 
     public void updateItem(int position, String name, String contactInfo) {
@@ -135,20 +182,24 @@ public class CustomRvAdapter extends RecyclerView.Adapter {
     public void deleteItem(int position) {
         this.personList.remove(position);
 
+        this.checkboxListener.checkboxState.remove(position);
+
+
         this.notifyItemRemoved(position);
         this.notifyItemRangeChanged(position, this.personList.size());
     }
 
     public LinkedList<Integer> getChosenList() {
         LinkedList<Integer> result = new LinkedList<Integer>();
-        int pos = 0;
+        int index = 0;
 
-        for (CustomViewHolder viewHolder : this.holderList) {
-            if (viewHolder.cbChoice.isChecked()) {
-                result.add(new Integer((int) viewHolder.getItemId()));
+        for (Short value : this.checkboxListener.checkboxState) {
+            if (value.shortValue() == DISPLAY_AND_CHECKED) {
+                result.add(new Integer(index));
             }
-            pos++;
+            index++;
         }
+
         return result;
     }
 }

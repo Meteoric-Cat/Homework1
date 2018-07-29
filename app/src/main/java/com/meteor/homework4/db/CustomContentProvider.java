@@ -13,6 +13,7 @@ import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
+import android.util.Log;
 
 public class CustomContentProvider extends ContentProvider {
     //URI
@@ -29,10 +30,10 @@ public class CustomContentProvider extends ContentProvider {
 
     private static final String PEOPLE_PATH = "people";
     private static final int PEOPLE_CODE = 1;
-    private static final String PEOPLE_TYPE = "vnd.android.cursor.dir/vnd.android.homework4.people";
-    private static final String PERSON_PATH = "person/#";
+    private static final String PEOPLE_TYPE = "vnd.android.cursor.dir/vnd.meteor.people";
+    private static final String PERSON_PATH = "people/#";
     private static final int PERSON_CODE = 2;
-    private static final String PERSON_TYPE = "vnd.android.cursor.item/vnd.android.homework4.people";
+    private static final String PERSON_TYPE = "vnd.android.cursor.item/vnd.meteor.people";
 
     static final UriMatcher uriMatcher;
 
@@ -56,7 +57,7 @@ public class CustomContentProvider extends ContentProvider {
     private static final String PEOPLE_DROP_QUERY = "DROP TABLE IF EXISTS " + PEOPLE_TABLE_NAME;
 
     private static final String PEOPLE_INSERT_EXCEPTION = "Can not insert to ";
-    private static final String UNKNOWN_URI_EXCEPTION = " is not unknown";
+    private static final String UNKNOWN_URI_EXCEPTION = " is unknown";
     private static final String UNSUPPORTED_URI = " is not supported";
 
     private static class DatabaseHelper extends SQLiteOpenHelper {
@@ -112,7 +113,7 @@ public class CustomContentProvider extends ContentProvider {
 
             case PERSON_CODE:
                 String id = uri.getPathSegments().get(idPostion);
-                String realSelection = PRIMARY_KEY + "=" + id + (TextUtils.isEmpty(selection) ? "" : " AND (" + selection + ")");
+                String realSelection = PRIMARY_KEY + " = " + id + (TextUtils.isEmpty(selection) ? "" : " AND (" + selection + ")");
 
                 result = this.sqLiteDatabase.query(PEOPLE_TABLE_NAME, projectMap, realSelection, selectionArgs,
                         null, null, sortOrder);
@@ -132,13 +133,23 @@ public class CustomContentProvider extends ContentProvider {
         switch (uriMatcher.match(uri)) {
             case PEOPLE_CODE:
                 count = this.sqLiteDatabase.delete(PEOPLE_TABLE_NAME, selection, selectionArgs);
+                //reset database id sequence
+                String update0="UPDATE SQLITE_SEQUENCE SET SEQ=0 WHERE NAME='"+ PEOPLE_TABLE_NAME+"'";
+                this.sqLiteDatabase.execSQL(update0);
                 break;
 
             case PERSON_CODE:
                 String id = uri.getPathSegments().get(idPostion);
-                String realSelection = PRIMARY_KEY + "=" + id + (TextUtils.isEmpty(selection) ? "" : "AND (" + selection + ")");
+                String realSelection = PRIMARY_KEY + " = " + id + (TextUtils.isEmpty(selection) ? "" : "AND (" + selection + ")");
+                Log.d("selection:",realSelection);
 
                 count = this.sqLiteDatabase.delete(PEOPLE_TABLE_NAME, realSelection, selectionArgs);
+                Log.d("count",String.valueOf(count));
+
+                String update1="UPDATE "+PEOPLE_TABLE_NAME+" SET "+PRIMARY_KEY+" = ("+PRIMARY_KEY+"-1) WHERE "+PRIMARY_KEY+" > "+id;
+                this.sqLiteDatabase.execSQL(update1);
+                String update2="UPDATE SQLITE_SEQUENCE SET SEQ = (SEQ-1) WHERE NAME = '"+PEOPLE_TABLE_NAME+"'";
+                this.sqLiteDatabase.execSQL(update2);
                 break;
 
             default:
@@ -158,7 +169,7 @@ public class CustomContentProvider extends ContentProvider {
 
             case PERSON_CODE:
                 String id = uri.getPathSegments().get(idPostion);
-                String realSelection = PRIMARY_KEY + "=" + id + (TextUtils.isEmpty(selection) ? "" : " AND (" + selection + ")");
+                String realSelection = PRIMARY_KEY + " = " + id + (TextUtils.isEmpty(selection) ? "" : " AND (" + selection + ")");
 
                 count = this.sqLiteDatabase.update(PEOPLE_TABLE_NAME, contentValues, realSelection, selectionArgs);
                 break;
