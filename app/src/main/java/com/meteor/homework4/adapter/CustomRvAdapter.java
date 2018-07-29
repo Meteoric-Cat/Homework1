@@ -184,7 +184,6 @@ public class CustomRvAdapter extends RecyclerView.Adapter {
 
         this.checkboxListener.checkboxState.remove(position);
 
-
         this.notifyItemRemoved(position);
         this.notifyItemRangeChanged(position, this.personList.size());
     }

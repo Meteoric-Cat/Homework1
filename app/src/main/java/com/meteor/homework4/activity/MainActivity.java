@@ -204,6 +204,7 @@ public class MainActivity extends AppCompatActivity implements InputDialog1.Clic
                 continue;
             }
             rv_infoAdapter.deleteItem(iter  + 1 - deletedAmount);
+            //can delete all before updating database again
         }
     }
 }
