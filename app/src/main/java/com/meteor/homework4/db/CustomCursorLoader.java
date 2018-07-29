@@ -8,7 +8,7 @@ import android.os.Looper;
 import android.support.v4.content.AsyncTaskLoader;
 import android.widget.Toast;
 
-public class CustomCursorLoader extends AsyncTaskLoader<Cursor> {
+public class CustomCursorLoader extends AsyncTaskLoader<Cursor> {                                   //extends CursorLoader
     public static final int INITIAL_TYPE = 0;
     public static final int INSERT_TYPE = 1;
     public static final int QUERY_TYPE = 2;
